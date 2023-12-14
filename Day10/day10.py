@@ -5,66 +5,91 @@ NORTH = (-1, 0)
 EAST = (0, 1)
 SOUTH = (1, 0)
 
-routes = {
-        '|': {NORTH:NORTH, SOUTH:SOUTH},
-        '-': {WEST:WEST, EAST:EAST},
-        'L': {SOUTH:EAST, WEST:NORTH},
-        'J': {SOUTH:WEST, EAST:NORTH},
-        '7': {NORTH:WEST, EAST:SOUTH},
-        'F': {NORTH:EAST, WEST:SOUTH},
-        '.': {}
+neighbours = {
+        '|': [NORTH, SOUTH],
+        '-': [WEST, EAST],
+        'L': [NORTH, EAST],
+        'J': [NORTH, WEST],
+        '7': [WEST, SOUTH],
+        'F': [SOUTH, EAST],
+        '.': []
     }
 
-def p1(lines):
-    field = list()
+def build_path(lines, fill_area):
+    field = []
     s_x = None
     s_y = None
-    y = 0
-    for line in lines:
-        tiles = list()
+
+    for y, line in enumerate(lines):
+        tiles = []
         x = 0
-        for tile in line.rstrip():
+        for x, tile in enumerate(line.rstrip()):
             tiles.append(tile)
-            if (tile == 'S'):
+            if tile == 'S':
                 s_x = x
                 s_y = y
-            x += 1
-        y += 1
         field.append(tiles)
     
     # Determine S type
-    y, x, dir = find_start(field, s_x, s_y)
-    len = 1
-    while True:
-        if field[y][x] == 'S':
-            break
+    visited = [[False for y in range(0, len(field[0]))] for i in range(0, len(field))]
+    visited[s_y][s_x] = True
+    s_neighbours, s_type = find_start(field, s_x, s_y)
+    
+    nodes = [(s_y+n[0], s_x+n[1], 1) for n in s_neighbours]
+    length = 0
+    while len(nodes) > 0:
+        node = nodes.pop(0)
+        if visited[node[0]][node[1]]:
+            continue
+        else:
+            length = node[2]
+            visited[node[0]][node[1]] = True
+            for n in neighbours[field[node[0]][node[1]]]:
+                ny = node[0]+n[0]
+                nx = node[1]+n[1]
+                if not visited[ny][nx]:
+                    nodes.append((ny, nx, node[2]+1))
+    print(length)
 
-        dir = routes[field[y][x]].get(dir)
-        y += dir[0]
-        x += dir[1]
-        len += 1
-    print(len//2)
+    walls = ["J", "L", "|"]
+    field[s_y][s_x] = s_type
+    in_cnt = 0
+    for y, row in enumerate(field):
+        for x in range(0, len(row)):
+            if not visited[y][x]:
+                cnt_l = 0
+                cnt_r = 0
+                for i in range(0, x):
+                    if visited[y][i] and field[y][i] in walls:
+                        cnt_l += 1       
+                for i in range(x, len(row)):
+                    if visited[y][i] and field[y][i] in walls:
+                        cnt_r += 1
+                if cnt_l % 2 and cnt_r % 2:
+                    in_cnt += 1
+                    field[y][x] = "O"
+    print(in_cnt)
+
         
 def find_start(field, x, y):
-    if (x > 0):
-        res = routes[field[y][x+1]].get(EAST)
-        if res:
-            return y, x+1, EAST
-    if (x + 1 < len(field)):
-        res = routes[field[y][x-1]].get(WEST)
-        if res:
-            return y, x-1, WEST
+    s_neigh = []
     if (y > 0):
-        res = routes[field[y-1][x]].get(NORTH)
-        if res:
-            return y-1, x, NORTH
+        if SOUTH in neighbours[field[y-1][x]]:
+            s_neigh.append(NORTH)
+    if (x > 0):
+        if EAST in neighbours[field[y][x-1]]:
+            s_neigh.append(WEST)
     if (y + 1 < len(field)):
-        res = routes[field[y+1][x]].get(SOUTH)
-        if res:
-            return y+1, x, SOUTH
+        if NORTH in neighbours[field[y+1][x]]:
+            s_neigh.append(SOUTH)
+    if (x + 1 < len(field[0])):
+        if WEST in neighbours[field[y][x+1]]:
+            s_neigh.append(EAST)
+    for k, v in neighbours.items():
+        if v == s_neigh:
+            return s_neigh, k
         
 
-if __name__ == "__main__":
-    with open("Day10/input.txt") as file:
-        lines = file.readlines()
-        p1(lines)
+with open("Day10/input.txt") as file:
+    lines = file.readlines()
+    build_path(lines, True)
