@@ -15,30 +15,21 @@ def find_path(grid, ultra=False):
         m = (m_y, m_x)
         rev_turn = (-m_y, -m_x)
 
-        if not ultra:
-            for n in neighbours:
+        for n in neighbours:
+            if not ultra:
                 if n == rev_turn or (n == m and steps == 3):
                     continue
-
-                n_y = pos_y + n[0]
-                n_x = pos_x + n[1]
-                n_steps = 1 if n != m else steps + 1
-
-                if n_y < 0 or n_x < 0 or n_y == len(grid) or n_x == len(grid[n_y]):
-                    continue
-                heapq.heappush(q, (cost+grid[n_y][n_x],n_y, n_x,n[0],n[1],n_steps))
-        else:
-            for n in neighbours:
+            else:
                 if n == rev_turn or (n == m and steps == 10) or (n != m and steps < 4 and m != (0,0)):
                     continue
-                
-                n_y = pos_y + n[0]
-                n_x = pos_x + n[1]
-                n_steps = 1 if n != m else steps + 1
 
-                if n_y < 0 or n_x < 0 or n_y == len(grid) or n_x == len(grid[n_y]):
-                    continue
-                heapq.heappush(q, (cost+grid[n_y][n_x],n_y, n_x,n[0],n[1],n_steps))
+            n_y = pos_y + n[0]
+            n_x = pos_x + n[1]
+            n_steps = 1 if n != m else steps + 1
+
+            if n_y < 0 or n_x < 0 or n_y == len(grid) or n_x == len(grid[n_y]):
+                continue
+            heapq.heappush(q, (cost+grid[n_y][n_x],n_y, n_x,n[0],n[1],n_steps))
 
 with open("Day17/input.txt") as file:
     lines = [x.rstrip() for x in file.readlines()]
