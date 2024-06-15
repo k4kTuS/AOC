@@ -1,2 +1,2 @@
 # AOC
-Advent of Code 2023 solutions
+Advent of Code solutions
